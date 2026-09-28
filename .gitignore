@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+dist/
+frontend/dist/
+data/profitpilot.db
+.env
+frontend/node_modules/
+.pytest_cache/
+*.log
+playwright-report/
+test-results/
