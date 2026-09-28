@@ -31,20 +31,29 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         return response
 
 
+CSP_BASE = ("default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
+            "script-src 'self'; connect-src 'self'; base-uri 'none'")
+SPA_CSP = CSP_BASE + "; frame-ancestors 'self' " + " ".join(settings.frame_ancestor_sources)
+API_CSP = CSP_BASE + "; frame-ancestors 'none'"
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Everything under /api is locked down (DENY framing, no-store on authed JSON). The SPA
+    document itself may be framed by the configured preview hosts only, because the live demo is
+    embedded in a preview iframe — see docs/DECISIONS.md D11."""
+
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
+        is_api = request.url.path.startswith("/api/")
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
-        response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
         response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
-        response.headers.setdefault(
-            "Content-Security-Policy",
-            "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
-            "script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
+        response.headers.setdefault("Content-Security-Policy", API_CSP if is_api else SPA_CSP)
+        if is_api:
+            response.headers.setdefault("X-Frame-Options", "DENY")
         if settings.app_env == "prod":
             response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-        if request.url.path.startswith("/api/") and not request.url.path.startswith("/api/health"):
+        if is_api and not request.url.path.startswith("/api/health"):
             response.headers.setdefault("Cache-Control", "no-store")
         return response
 

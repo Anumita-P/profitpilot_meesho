@@ -31,10 +31,15 @@ def demo_login(payload: LoginIn, request: Request, response: Response, session: 
     audit_service.write(session, action="login", user_id=user.user_id, role=user.role,
                         entity_type="user", entity_id=user.user_id,
                         request_id=getattr(request.state, "request_id", None))
-    return dict(user=dict(id=user.user_id, role=user.role, name=user.name, seller_id=user.seller_id,
+    body = dict(user=dict(id=user.user_id, role=user.role, name=user.name, seller_id=user.seller_id,
                           persona=user.persona),
                 redirect=dict(seller="/seller/catalog", employee="/employee/overview",
                               customer="/customer/listing/K-101")[user.role])
+    if request.headers.get("X-Session-Transport") == "bearer":
+        # Explicit opt-in fallback for environments that partition or block the session cookie
+        # inside an iframe. The httpOnly cookie stays the default transport (DECISIONS D12).
+        body["token"] = token
+    return body
 
 
 @router.post("/auth/logout", status_code=204)

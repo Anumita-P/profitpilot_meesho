@@ -19,8 +19,21 @@ def db() -> Session:
         session.close()
 
 
-def current_user(request: Request, response: Response, session: Session = Depends(db)) -> dict:
+def _session_token(request: Request) -> tuple[str | None, str]:
+    """The cookie is the primary transport. A bearer token is accepted as a fallback for
+    embedded previews where the browser drops third-party cookies (see DECISIONS D12)."""
     token = request.cookies.get(COOKIE_NAME)
+    if token:
+        return token, "cookie"
+    header = request.headers.get("Authorization", "")
+    if header.lower().startswith("bearer "):
+        return header[7:].strip() or None, "bearer"
+    return None, "none"
+
+
+def current_user(request: Request, response: Response, session: Session = Depends(db)) -> dict:
+    token, transport = _session_token(request)
+    request.state.transport = transport
     if not token:
         raise ApiError(401, "Sign in to continue.")
     data = decode_token(token)
@@ -28,7 +41,7 @@ def current_user(request: Request, response: Response, session: Session = Depend
         raise ApiError(401, "Your session expired. Sign in again.")
     request.state.role = data.get("role")
     refreshed = sliding_refresh(token)
-    if refreshed:
+    if refreshed and transport == "cookie":
         response.set_cookie(COOKIE_NAME, refreshed, httponly=True, samesite="lax",
                             secure=settings.cookie_secure, max_age=settings.jwt_expire_minutes * 60)
     return data

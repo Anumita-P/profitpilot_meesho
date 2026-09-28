@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     jwt_secret: str = DEFAULT_SECRET
     jwt_expire_minutes: int = 60
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # Hosts allowed to frame the SPA document (the API itself is never frameable — see DECISIONS D11)
+    frame_ancestors: str = "https://*.e2b.app,https://*.e2b.dev"
     cookie_secure: bool = False
     rate_limit_auth: str = "10/minute"
     rate_limit_sim: str = "60/minute"
@@ -38,6 +40,10 @@ class Settings(BaseSettings):
     @property
     def origins(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def frame_ancestor_sources(self) -> list[str]:
+        return [o.strip() for o in self.frame_ancestors.split(",") if o.strip()]
 
     def resolve_secret(self) -> str:
         """Refuse to boot in dev/prod with the placeholder secret; generate an ephemeral one in demo."""

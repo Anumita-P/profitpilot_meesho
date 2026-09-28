@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
 
@@ -20,8 +20,7 @@ from .services.runtime import bundle
 
 log = logging.getLogger("profitpilot")
 logging.basicConfig(level=settings.log_level,
-                    format='{"ts":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","msg":%(message)s}'
-                    if False else "%(asctime)s %(levelname)s %(name)s %(message)s")
+                    format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIST = ROOT / "frontend" / "dist"
@@ -88,11 +87,13 @@ if FRONTEND_DIST.exists():      # single-image demo mode: serve the built SPA fr
 
     @app.exception_handler(404)
     async def spa_fallback(request: Request, exc):
+        """Client-side routes are not files: hand them index.html at the same URL so the router
+        can render the deep link instead of redirecting the browser back to the root."""
         if request.url.path.startswith("/api/"):
             return JSONResponse(status_code=404, content=dict(error=dict(
                 code="NOT_FOUND", message="Not found", field_errors={},
                 request_id=getattr(request.state, "request_id", None))))
-        return RedirectResponse("/index.html")
+        return FileResponse(FRONTEND_DIST / "index.html")
 
 
 @app.get("/")

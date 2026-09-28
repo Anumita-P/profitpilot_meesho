@@ -48,8 +48,7 @@ def _rollout() -> dict:
             generated += 1
             if best is None:
                 fails = ev["checks"]
-                allf = (~fails["all"]).sum(axis=0)
-                idx = int(np.argmin(allf))
+                idx = S.closest_index(ev)
                 for key, bucket in (("contribution_floor", "below_floor"), ("max_price_move", "price_move"),
                                     ("confidence", "low_confidence"), ("corridor", "corridor")):
                     if not bool(fails[key][idx]):
@@ -111,7 +110,7 @@ def interventions(session: Session) -> dict:
 def guardrails(session: Session) -> dict:
     r = _rollout()
     aud = audit_counts(session)
-    return dict(counts=r["guardrails"]["blocked"], audit=aud, label="Synthetic — simulated rollout",
+    return dict(counts=r["blocked"], audit=aud, label="Synthetic — simulated rollout",
                 blocked_actions=dict(
                     below_floor="recommendation withheld because contribution stayed under the seller's floor",
                     price_move="candidate required a price move larger than the 12% step cap",
