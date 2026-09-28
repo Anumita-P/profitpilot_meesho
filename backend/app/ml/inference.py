@@ -16,6 +16,11 @@ from .economics import effective_sku, event_tree, quantiles, sample_days
 MODEL_VERSION_DEFAULT = "pp-synth-1.0.0"
 
 
+def _logit(p: np.ndarray) -> np.ndarray:
+    p = np.clip(p, 1e-9, 1 - 1e-9)
+    return np.log(p / (1 - p))
+
+
 class ModelBundle:
     def __init__(self, path: str | Path):
         self.path = Path(path)
@@ -28,6 +33,7 @@ class ModelBundle:
         self.data_hash: str = raw["data_hash"]
         self.metrics: dict = raw["metrics"]
         self.n_members: int = raw["n_members"]
+        self.recovered: dict = raw.get("recovered", {})
         self.coefs: dict[str, np.ndarray] = {
             k: np.asarray(v["coef"], dtype=float) for k, v in raw["models"].items()
         }          # each (M, K+1)
@@ -75,10 +81,29 @@ class ModelBundle:
         return dict(q=q, cod=cod, rto_cod=self._apply("M3", x3_cod), rto_pp=self._apply("M3", x3_pp),
                     ret_cod=self._apply("M4", x4_cod), ret_pp=self._apply("M4", x4_pp))
 
-    def block(self, sku: dict, prices: np.ndarray, iv: dict | None = None) -> dict[str, np.ndarray]:
-        """All event-tree metrics for `sku` across `prices`, shaped (P, M)."""
+    def block(self, sku: dict, prices: np.ndarray, iv: dict | None = None,
+              probe: dict | None = None) -> dict[str, np.ndarray]:
+        """All event-tree metrics for `sku` across `prices`, shaped (P, M).
+
+        `probe` is a sensitivity hook used by the explain/sensitivity services: it can shift the
+        return or RTO logit, scale demand, or scale freight costs without changing the fitted model.
+        """
         sku_eff = effective_sku(sku, iv)
         probs = self.probabilities(sku, prices, sku_eff)
+        if probe:
+            probs = dict(probs)
+            for key in ("ret_cod", "ret_pp"):
+                if probe.get("ret_logit_delta"):
+                    probs[key] = self._sigmoid(_logit(probs[key]) + float(probe["ret_logit_delta"]))
+            for key in ("rto_cod", "rto_pp"):
+                if probe.get("rto_logit_delta"):
+                    probs[key] = self._sigmoid(_logit(probs[key]) + float(probe["rto_logit_delta"]))
+            if probe.get("demand_mult_extra"):
+                probs["q"] = np.clip(probs["q"] * float(probe["demand_mult_extra"]), 0.0, 1.0)
+            if probe.get("cost_scale"):
+                sku_eff = dict(sku_eff)
+                for k in ("fwd_shipping", "rev_shipping", "pack_cost", "cost"):
+                    sku_eff[k] = float(sku_eff[k]) * float(probe["cost_scale"])
         return event_tree(sku_eff, np.asarray(prices, dtype=float), probs)
 
     def point(self, sku: dict, price: float, iv: dict | None = None, n_days: int = 600,

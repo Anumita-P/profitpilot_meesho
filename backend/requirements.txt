@@ -1,0 +1,13 @@
+# ProfitPilot backend — pinned so the demo runs identically offline.
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.4
+pydantic-settings==2.7.0
+SQLAlchemy==2.0.36
+numpy==2.3.5
+pandas==2.2.3
+scikit-learn==1.6.1
+PyJWT==2.10.1
+httpx==0.28.1
+slowapi==0.1.9
+pytest==8.3.4

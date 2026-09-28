@@ -112,11 +112,12 @@ def sample_days(sku_eff: dict, metrics: dict[str, np.ndarray], n_days: int = 600
     orders_rate = metrics["orders_day"][0, :]                     # (M,)
     canc = float(sku_eff["cancel_rate"])
     cod = metrics["cod_share"][0, :]
-    rto_mix = metrics["rto"][0, :]
+    rto_mix = metrics["rto"][0, :] if np.ndim(metrics["rto"]) == 2 else np.full(m, metrics["rto"])
     ret_bar = metrics["return_rate"][0, :]
-    kept_val = metrics["kept_val"][0, :]
-    ret_val = metrics["ret_val"][0, :]
-    rto_val = metrics["rto_val"][0, :]
+    flat = lambda x: np.full(m, float(np.asarray(x).reshape(-1)[0]))   # noqa: E731
+    kept_val = flat(metrics["kept_val"])        # per-order branch values are scalars per price
+    ret_val = flat(metrics["ret_val"])
+    rto_val = flat(metrics["rto_val"])
 
     orders = rng.poisson(np.repeat(orders_rate, n_days))           # (M*n_days,)
     cancelled = rng.binomial(orders, canc)
