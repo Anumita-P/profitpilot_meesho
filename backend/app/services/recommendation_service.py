@@ -25,6 +25,7 @@ VERDICT_TITLES = {
     "NOT_A_PRICE_PROBLEM": "Price is probably not your main problem",
 }
 BANNER_INFEASIBLE = "ProfitPilot found {n} other ways to improve the economics."
+BANNER_INFEASIBLE_ONE = "ProfitPilot found one other way to improve the economics."
 GUARDRAILS = dict(recommendation_only=True, max_price_move=0.12, buyer_level_pricing=False,
                   corridor="market corridor is enforced", floor="never below your contribution floor",
                   confidence="Low-confidence advice is never recommended")
@@ -309,8 +310,9 @@ def recommend(session: Session, seller_id: str, sku_id: str, goal: dict, mode: s
         payload["considered_and_rejected"] = rejected[:6]
         if cards:
             payload["recommendation"] = cards[0]
-            payload["banner"] = BANNER_INFEASIBLE.format(
-                n=len([c for c in cards if c["status"] == "FEASIBLE"]) or min(3, len(cards)))
+            n_alt = len([c for c in cards if c["status"] == "FEASIBLE"]) or min(3, len(cards))
+            payload["banner"] = (BANNER_INFEASIBLE_ONE if n_alt == 1
+                                 else BANNER_INFEASIBLE.format(n=n_alt))
 
     if verdict == "PRICE_WORKS" and best is not None:
         payload["recommendation"] = dict(

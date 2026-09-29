@@ -27,7 +27,7 @@ test('rejected options state the constraint they fail', async ({ page }) => {
   await signInAs(page, 'sunita', '/seller/sku/K-207/recommendation')
 
   await expect(page.getByText('No price in the current market corridor meets your target.')).toBeVisible()
-  await expect(page.getByText(/ProfitPilot found \d+ other ways to improve the economics/)).toBeVisible()
+  await expect(page.getByText(/ProfitPilot found (one|\d+) other ways? to improve the economics/)).toBeVisible()
   await expect(page.getByText('Considered and rejected')).toBeVisible()
   await expect(page.getByText(/stays below your ₹60 floor|over the return cap|not on a volumetric slab/).first()).toBeVisible()
   await expect(page.getByText('meets your goal').first()).toBeVisible()

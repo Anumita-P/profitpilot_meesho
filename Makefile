@@ -7,9 +7,10 @@ export PYTHONPATH := backend
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 
-setup: ## install backend + frontend dependencies
+setup: ## install backend + frontend dependencies (+ the Playwright browser for make e2e)
 	$(PY) -m pip install -r backend/requirements.txt
 	cd frontend && npm install
+	cd frontend && npx playwright install chromium
 
 data: ## regenerate the synthetic dataset (deterministic seed)
 	$(PY) scripts/generate_data.py

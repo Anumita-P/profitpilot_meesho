@@ -114,13 +114,13 @@ route below.
    The banner says *"No price in the current market corridor meets your target."* It shows the best
    in-corridor price (₹399 → ₹54/kept order), the exact shortfall (₹6/kept order, 1.4 orders/day),
    *which* constraint is binding, and then five ranked ways to fix the economics — packaging +
-   bundle is feasible at ₹111/kept order and 12.7% return+RTO. Rejected options each state their
+   bundle is feasible at ₹117/kept order and 12.7% return+RTO. Rejected options each state their
    reason ("bundle alone → 15.4% return+RTO exceeds your 15% cap").
 2. **Reverse pricing** on the same listing (`/seller/sku/K-207/reverse`) → target-first: the price
    you would need, whether it is inside the corridor, and how many guarded 12% steps away it is.
 3. **Diagnosis** on K-118 → *"Price is probably NOT your main problem"*: the funnel shows
    click-through in the bottom percentile of 67 comparable listings; the fix (rebuild the primary
-   image) is worth **+₹548/day**, while a price cut is rejected with numbers.
+   image) is worth **+₹587/day**, while a price cut is rejected with numbers.
 
 **10 minutes — add the economics and the guardrails**
 
@@ -197,7 +197,7 @@ database. Everything is deterministic: same seed, same numbers on every run.
 | --- | --- |
 | `Model file data/models/v1.json is missing` | run `make train` (or restore the committed file) |
 | Opening `/` shows JSON, not the app | `frontend/dist` was missing when uvicorn started → `make build`, then restart |
-| `make e2e` fails to launch a browser | `cd frontend && npx playwright install --with-deps chromium` |
+| `make e2e` fails to launch a browser | `cd frontend && npx playwright install chromium` (already part of `make setup`); on Debian/Ubuntu also install the system libs printed by `npx playwright install-deps chromium --dry-run` |
 | `429 Too Many Requests` after clicking logins quickly | demo login is rate limited to 10/min by design (SPEC 21); wait a minute |
 | Demo numbers look wrong / database half-seeded | `make reset` |
 | Port 8000 already in use | stop the other process, or run `cd backend && uvicorn app.main:app --port 8010` |
