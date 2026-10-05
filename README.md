@@ -1,216 +1,232 @@
-# ProfitPilot
+# ProfitPilot — the backend
 
-**Profit-aware pricing recommendations for marketplace sellers — and an honest answer when no
-price works.**
+The engine behind the ProfitPilot prototype: **pricing across a product's
+lifecycle** for new-to-online Meesho sellers — and an honest answer when price is
+not the problem.
 
-A seller sets one goal (retained contribution per kept order, a volume floor, a return+RTO cap,
-a working-capital limit). ProfitPilot then either finds a price that reaches it, proves that no
-price inside the market corridor can, or shows that price is not the problem at all — and ranks
-the operational changes that would fix the economics instead.
+Meesho DICE Challenge Season 3 · Business Track · Team Fiery Diamonds, IIT Madras.
 
-Everything is computed live by the backend on every request: four fitted logistic models (30-member
-bootstrap) → an event tree of order outcomes → a constrained optimizer → a verdict → a template
-explanation. There is no mock layer, no hard-coded number in the UI, and no network call anywhere
-at runtime.
+The single-file prototype runs the whole engine in the browser. This service is
+that engine **on a server**: behind an API, with persistence, an audit trail, a
+closed seller loop, and guardrails enforced where they cannot be skipped. It
+serves the same prototype — wired to the API — at `/`, and falls back to the
+in-browser engine automatically if the server is unreachable, so the offline demo
+(and the QR code on the pitch slide) still works.
 
----
+No dependencies. The service imports nothing outside the Node 20 standard
+library; there is no install step.
 
-## 1. Quick start (5 commands)
+```
+UI (public/index.html)                 ── the v1.1 prototype, unchanged except one <script> tag
+   │  api-bridge.js                    ── adapter: server results in, local results as fallback
+   ▼
+HTTP API (server.js, 124 routes)       ── zero dependencies, node:http
+   │  sessions · scoping · idempotency · validation · request ids · no stack traces
+   ▼
+──────────────────────────── the seller loop ────────────────────────────
+events (src/domain/events.js)          ── 14 event types → feature fold → signals
+recommendations (src/domain/recommendations.js)  ── persistent state machine
+outcomes · experiments · actions       ── measured result, holdout claim guard,
+                                          action queue with an audit trail
+scheduler (src/jobs/scheduler.js)      ── deterministic run-cycle: recalc, observe,
+                                          cooldown, auto-revert, queue
+──────────────────────── the pricing engine ─────────────────────────────
+engine (src/engine/*)                  ── floor · demand · modes · guardrails · recommend ·
+                                          diagnose · lifecycle · bandit · risk · launch ·
+                                          programmes · coach   (deck slides 2–11)
+──────────────────── decision intelligence v2 (in progress) ─────────────
+sim (src/sim/*)                        ── seeded seller/market simulator that emits into
+                                          the real ingestion path; scenario lab A–H
+domain v2 (src/domain/*)               ── counterfactual · bottleneck · inventory ·
+                                          promotion · portfolio · regions · explain ·
+                                          baselines
+   ▼
+store (src/store/*)                    ── JSON + append-only event log under data/
+```
+
+## Run it
 
 ```bash
-# 0. requirements: Python 3.11+ (tested on 3.13) and Node 20+
-make setup          # pip install -r backend/requirements.txt  +  npm install (frontend)
-make demo           # builds the SPA if needed, then serves app + API on :8000
-
-# open http://localhost:8000   → login screen with four demo personas
+npm start                 # http://localhost:8787  (nothing to install)
 ```
 
-`make demo` is idempotent: it installs the frontend dependencies only if `node_modules` is missing,
-builds `frontend/dist` only if it is not there, then starts uvicorn. `Ctrl-C` stops it.
-On the first boot the SQLite file `data/profitpilot.db` is created and seeded (599 listings,
-40 sellers, 35,940 SKU-days, 4 login personas).
-
-**Windows / no `make`:** run the underlying commands:
-
-```powershell
-python -m pip install -r backend/requirements.txt
-cd frontend; npm install; npm run build; cd ..
-cd backend; $env:PYTHONPATH="..\backend"; python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-
----
-
-## 2. What ships in the box
-
-| Path | What it is |
-| --- | --- |
-| `docs/SPEC.md` | the source of truth (product, models, API, security, acceptance criteria) |
-| `docs/BUILD_PLAN.md`, `docs/DECISIONS.md` | build order; every judgement call with the reason |
-| `docs/FINAL_CHECK.md`, `docs/DATA_LABELS.md` | self-review with evidence; the honesty-labelling rules |
-| `backend/app/` | FastAPI app: `ml/`, `optimization/`, `services/`, `api/`, `database/` |
-| `frontend/` | React 18 + TypeScript + Vite SPA (seller, employee and customer lanes) |
-| `data/synthetic/*.csv` | the synthetic dataset (~17 MB) — committed, so nothing has to be generated |
-| `data/models/v1.json` | the fitted models `pp-synth-1.0.0` (30 bootstrap members) — committed |
-| `scripts/` | `generate_data.py`, `train_models.py`, `api_smoke.py`, `verify_scenarios.py` |
-| `docs/screenshots/` | the screenshots quoted in `FINAL_CHECK.md` |
-
-Data and model files are committed deliberately: a fresh clone runs offline with no extra step.
-
----
-
-## 3. Running it
-
-### Option A — one port (production-style, what the demo uses)
+Open <http://localhost:8787>. The page boots with a **🟢 Engine server** badge in
+the top bar, and every screen is computed by the API — floors, recommendations,
+diagnose, lifecycle, the Thompson bandit, the coach — with the prototype's own
+engine still there as the fallback.
 
 ```bash
-make build && make api        # SPA at http://localhost:8000, API docs at http://localhost:8000/api/docs
+npm test                  # 92 tests: prototype-parity + engine invariants + closed loop + security + idempotency
+npm run smoke             # 128 route checks (all HTTP verbs incl. HEAD probes); fails on any 5xx
+npm run test:ui           # 53 checks: headless walk-through of the wired page against a live server
+npm run demo              # 12-step closed-loop demo (findings → recommendation → action → audit)
+npm run shots             # freeze the server-rendered screens into docs/snapshots/
+npm run reset             # reseed the demo data
 ```
 
-The API serves `frontend/dist` **if it exists at start-up**, so build first if you start uvicorn by
-hand. Client-side routes (`/seller/sku/K-101`) are served `index.html` at the same URL.
+Environment: `PORT` (default 8787), `HOST` (default 0.0.0.0), `PP_DATA_DIR`
+(default `./data`), `PP_LOG=off` to silence the request log.
 
-### Option B — two ports (frontend hot reload)
+## Endpoints at a glance
+
+| Group | Examples |
+|---|---|
+| Boot & meta | `GET /api/bootstrap`, `GET /api/meta`, `GET /api/routes`, `GET /api/health` |
+| Catalogue & pricing | `GET /api/floors`, `GET /api/listings/:id`, `GET /api/listings/:id/recommendation?mode=`, `POST /api/listings/:id/publish` |
+| Diagnose & explain | `POST /api/listings/:id/diagnose`, `GET /api/listings/:id/why` |
+| Lifecycle | `GET /api/lifecycle/listings/:id/state\|window\|metrics`, `POST …/generate` |
+| Events | `POST /api/events`, `POST /api/events/batch`, `POST /api/events/simulate`, `GET /api/events/stats` |
+| Closed loop | `GET /api/closed-loop/status`, `GET /api/lifecycle/outcomes`, `POST /api/lifecycle/recommendations/:id/measure` |
+| Experiments | `POST /api/experiments`, `POST /api/experiments/:id/start\|observe\|claim`, `GET …/impact` |
+| Actions & trust | `POST /api/actions/step`, `POST /api/actions/:id/:step`, `GET /api/actions/trust/:sellerId` |
+| Ops | `GET/POST /api/jobs*`, `GET /api/metrics`, `GET /api/admin/audit\|export\|docs` |
+| Sessions | `POST /api/session` (seller scoping; cross-seller reads are 403) |
+
+Full list with one-line summaries: [`docs/API.md`](docs/API.md) or `GET /api/routes`.
 
 ```bash
-make api                      # terminal 1 → uvicorn on :8000
-make dev                      # terminal 2 → Vite on :5173, proxies /api → :8000
+curl -s localhost:8787/api/floors                    # F = 309 / 346 / 166 / 266 / 367
+curl -s "localhost:8787/api/listings/L-kurti/recommendation?mode=growth"
+curl -s -X POST localhost:8787/api/listings/L-kurti/publish \
+     -H 'content-type: application/json' -d '{"price":249}'   # 409 + the Loss Warning
+curl -s localhost:8787/api/audit                     # every suggestion, acceptance, block
 ```
 
-### Everyday commands
+## The closed loop
 
-```bash
-make help                     # list every target
-make test                     # pytest: goldens, model calibration, constraint parity, API acceptance (25 tests)
-make smoke                    # runs the acceptance script: 5 demo scenarios, verdict + numbers
-make e2e                      # Playwright end-to-end (builds the SPA, starts the API itself)
-make shots                    # regenerate docs/screenshots (needs the e2e browsers)
-make data && make train       # regenerate the dataset and refit the models (deterministic seed)
-make reset                    # wipe data/profitpilot.db and re-seed from scratch
-```
-
-One-time Playwright setup (browsers live outside the repo):
-
-```bash
-cd frontend && npx playwright install --with-deps chromium
-```
-
-### Configuration
-
-Everything has a working default in demo mode — no secrets required. Copy `.env.example` to `.env`
-to change ports-free settings such as `APP_ENV`, `JWT_SECRET` (required when `APP_ENV != demo`),
-`CORS_ORIGINS`, `DATA_SEED`, rate limits or `MAX_PRICE_MOVE`.
-
----
-
-## 4. Demo script
-
-Sign in as **Sunita (seller)** on the login screen. Two ways to drive it: the **Demo scenarios**
-button in the top bar (it switches persona + goal and lands you on the right screen), or the manual
-route below.
-
-**5 minutes — the centrepiece (Revenue Manager's question: "what price do I need?")**
-
-1. **Scenario "No profitable price"** (K-207) → `/seller/sku/K-207/recommendation`.
-   The banner says *"No price in the current market corridor meets your target."* It shows the best
-   in-corridor price (₹399 → ₹54/kept order), the exact shortfall (₹6/kept order, 1.4 orders/day),
-   *which* constraint is binding, and then five ranked ways to fix the economics — packaging +
-   bundle is feasible at ₹117/kept order and 12.7% return+RTO. Rejected options each state their
-   reason ("bundle alone → 15.4% return+RTO exceeds your 15% cap").
-2. **Reverse pricing** on the same listing (`/seller/sku/K-207/reverse`) → target-first: the price
-   you would need, whether it is inside the corridor, and how many guarded 12% steps away it is.
-3. **Diagnosis** on K-118 → *"Price is probably NOT your main problem"*: the funnel shows
-   click-through in the bottom percentile of 67 comparable listings; the fix (rebuild the primary
-   image) is worth **+₹587/day**, while a price cut is rejected with numbers.
-
-**10 minutes — add the economics and the guardrails**
-
-4. **Simulator** on K-101 (`/seller/sku/K-101/simulate`) → move the slider to ₹349: orders rise ~60%
-   while contribution/day falls ~45%. The chart marks *highest orders* and *highest contribution*
-   separately, hatches everything outside the corridor, and the constraint list turns red one line at
-   a time. "Why this number?" opens the attribution drawer (event tree + contribution per branch).
-5. **Step cap** → the recommendation is ₹390, never ₹409: a 12% step is the maximum, and the next
-   step is offered as a ladder. Anything further is plotted but never recommended.
-6. **Employee view** (persona Priya, `/employee/overview`) → the simulated fleet rollout: how many
-   recommendations were generated, how many were withheld and why (below floor / step cap /
-   low confidence / corridor), plus model health (ECE, AUC) and the experiment design that was
-   written but never run on real traffic.
-7. **Customer view** (persona "A buyer") → the same listing from the buyer's side: one price for
-   everyone, no personalisation, return window, prepaid-vs-COD.
-
----
-
-## 5. What is real here, and what is not
-
-| Label | Meaning |
-| --- | --- |
-| **Synthetic** | produced by the offline simulator (`data/synthetic`, seed `20260928`) |
-| **Illustrative** | an input assumption (unit costs, freight slabs, cost of capital) |
-| **Estimated** | model output, always with a p10–p90 range and a confidence badge |
-
-No Meesho data, systems or internal APIs are used, and no Meesho number is reproduced anywhere
-except one company-reported figure quoted once as motivation (FY26 NMV ≈ 58.8% of GMV, on the About
-footnote). Models are interpretable logistic regressions — no RL, no bandit, no LLM, no
-buyer-level pricing; prices are never personalised, and ProfitPilot never writes a price anywhere.
-
----
-
-## 6. How it works
+The seller never asks "what price should I set?" — the system first asks **"what
+is actually hurting this product?"**. One pass through the loop:
 
 ```
-data (synthetic world) → M1 order prob · M2 COD share · M3 return · M4 RTO  (30 bootstrap members)
-      → event tree of an order's endings → constrained optimizer over the price corridor
-      → verdict (PRICE_WORKS / PRICE_INFEASIBLE / NEEDS_EVIDENCE / NOT_A_PRICE_PROBLEM)
-      → recommendation + template explanation + ranked interventions
+simulated/ingested market events → features → diagnosis → counterfactual options
+   → portfolio / inventory / promotion context → recommendation → guardrails
+   → action → observed outcome → baseline comparison → learning
 ```
 
-* **Corridor** — the market range around comparables; prices outside it are drawn, never recommended.
-* **Guards** — contribution floor, volume floor, return+RTO cap, 12% max price move per step,
-  14-day inventory cover, working-capital limit, confidence rule.
-* **Interventions** — cost levers (packaging, parcel redesign) × demand levers (image, bundle,
-  prepaid incentive), paired only where the combination makes sense.
-* **Verdicts** drive the UI: a verdict is a different screen, not a different colour.
-* **API** — 35 endpoints under `/api` (`/api/docs` has the full schema). Seller endpoints are scoped
-  from the session cookie; cross-seller access returns 404, never 403.
+* **Recommendations** are persistent state machines (`RECOMMENDATION → … →
+  AUDIT`), and outcomes are computed by a deterministic calculator whose primary
+  metric is the seller's own economics, not revenue.
+* **Experiments** carry a holdout and a claim guard: no causal claim without
+  treatment/holdout evidence, and the interval is printed even when it contains 0.
+* **The scheduler** (`POST /api/jobs/run`, or `start` it) does recalc → observe →
+  cooldown → auto-revert → queue, and is idempotent: re-running the same cycle
+  changes nothing and reports `changed: 0`.
+* **Every state-changing action is auditable**, and the guardrails sit in the one
+  function that writes a price (`src/domain/apply.js`), so nothing can bypass
+  them.
 
-Architecture, and the reasoning behind every threshold, are in `docs/SPEC.md` and
-`docs/DECISIONS.md`.
+## Decision Intelligence v2 — where it stands
 
----
+| Piece | State |
+|---|---|
+| Seeded seller/SKU/market simulator emitting into the real event ingestion; scenario CRUD, run, advance, reset, metrics | **done** (engine + lab) |
+| Evidence-first diagnosis: PRICE / CATALOGUE / DEMAND / FULFILMENT / RETURN_RTO / INVENTORY / PROMOTION / MIXED_UNCERTAIN, with price strictly last | **done** |
+| Counterfactual price curve with the floor marked, "Illustrative model estimate", and a recommendation that is neither the cheapest nor the highest-revenue candidate | **done** |
+| Inventory posture, promotion composition/contradiction, portfolio overlap, regional clusters, baseline A/B/C comparison | **done** |
+| Scenario lab A–H with per-scenario intent checking (`calibrate()` reports 8/8 matching their intended bottleneck from evidence) | **done** |
+| HTTP surface for the v2 routes (counterfactual, portfolio, inventory, promotion, regional, lab, evaluation) | **in progress** |
+| Decision Lab UI + "WHY THIS DECISION?" card (no redesign of the existing screens) | **in progress** |
+| Dedicated v2 test suites | **in progress** |
 
-## 7. Tests
+Everything simulated is labelled as such: simulated outcomes say *simulated /
+illustrative*, counterfactuals say *Illustrative model estimate*, and overlap
+wording is *estimated overlap / potential cannibalisation*. There are no
+competitor prices anywhere in the system and no statistical claims from a single
+run.
 
-```bash
-make test     # 25 passed — goldens ±10%, ECE ≤ 0.05, elasticity sign/size, constraint parity,
-              #              API acceptance (runs the smoke script + scenario verifier as subprocesses)
-make smoke    # human-readable acceptance report for the 5 scenarios
-make e2e      # 16 browser tests: seller journey, guardrail behaviour, all 5 scenarios, roles
+## Where the numbers come from
+
+Every constant lives in `src/config/deck.js`, next to the slide it came from, and
+`/api/meta` publishes that provenance map. Highlights, all verified by the tests:
+
+* **Floors** `₹309 / ₹346 / ₹166 / ₹266 / ₹367` — the deck's table, to the rupee.
+* **Kurti walk** `100 → 97 → 8 RTO → 89 → 11 returned → 78`, `k = 0.78`,
+  `F ₹309`, `B ₹50`, `P_easy ₹369`, `P_no ₹339`, `F_no ₹277`, `F⁺ ₹319`, `Pm ₹399`.
+* **Weekly card** `₹369 → ₹384` (+₹15 per kept order, CVR held 2 weeks), as on the
+  deck's card; the vase follows the deck's ladder `₹499 → ₹469 → ₹439`.
+* **Launch examples** Bangalore kurti `F 309 + 18 = 327 min → ₹369 / ₹339`;
+  Jaipur hand-block `F 429 → ₹549`; Rajkot lunch box `F 346 → ₹449`, then
+  discovery at `₹469 / ₹479`.
+* **Bandit** 30 days on the kurti: `₹299` blocked with zero pulls, traffic drifts
+  to `₹369`; holdout 6,840 impressions = 5% of traffic; observed lift +40.8% with
+  the 95% interval `[−47.5%, +129.2%]` — an honest interval that still contains 0.
+* **Pilot** `n = 251` per arm from the deck's formula, Surat 4.55 / Rajkot 4.10 with
+  Tiruppur as backup, waterfall `84 → 104.5` (+24.4%) and cohort `₹65.5 cr → ₹90 cr`.
+
+Deviations, rounding differences and judgement calls are listed one by one in
+[`docs/DECK_FIDELITY.md`](docs/DECK_FIDELITY.md) — including the one sensitivity
+lever that does not land on the slide's figure (+₹40 vs +₹30 on sourcing) and why.
+
+## Guardrails (enforced server-side, not advisory)
+
+Hard floor (return-adjusted, per SKU) · ±8% per move · 7-day cooldown · at most
+2 moves/month · 1,000-view sanity check before a move · 14-day auto-revert with
+28-day confirmation · the Loss Warning on any below-floor price · the panic brake.
+Counterfactual analysis may *evaluate* sub-floor prices to show the seller what a
+discount would cost; an actual move can never execute below the floor without the
+recorded override and consent rules.
+
+## Repository map
+
+```
+server.js                  HTTP entry: router, static UI, admin reset/export, graceful shutdown
+public/index.html          the v1.1 prototype with one added <script> tag (served at /)
+public/index.offline.html  the same file, untouched: hand it out for offline demos
+public/api-bridge.js       the adapter: patches FL / recFor / decide / lcModel / enStep /
+                           cAns …, converts server payloads to the prototype's shapes,
+                           and falls back to the local engine on any error
+reference/                 frozen original prototype + the submitted deck + the prototype's
+                           own guide (source of truth)
+src/config/deck.js         every deck constant, with slide provenance
+src/engine/                floor · demand · modes · guardrails · recommend · diagnose ·
+                           lifecycle · bandit · risk · launch · programmes · coach
+src/domain/                the closed loop: events · recommendations · outcomes · apply ·
+                           experiments · versions · trust · actions
+                           the v2 intelligence: bottleneck · counterfactual · inventory ·
+                           promotion · portfolio · regions · explain · baselines
+src/jobs/                  recalc (features, cooldowns, windows) · scheduler (run cycle)
+src/sim/                   random · scenario · market (day loop) · lab (scenarios A–H)
+src/http/                  router · respond · validate · idempotency · session
+src/auth/scope.js          seller scoping rules
+src/models/interfaces.js   every model behind an explicit replacement point
+src/store/                 JSON store, event log, seed data, view-model hydration
+src/api/                   HTTP surface: catalogue · listings/decisions · engine/pilot · coach ·
+                           events · lifecycle · experiments · actions · jobs · versions ·
+                           models · admin
+scripts/reset-db.js        reseed the demo data
+scripts/smoke-routes.mjs   call every route (plus HEAD probes), fail on 5xx
+scripts/demo-closed-loop.mjs  12-step end-to-end walk-through of the loop
+scripts/snapshot.mjs       freeze the server-computed screens into self-contained HTML
+test/parity.test.js        the backend vs the prototype's own engine, field by field
+test/engine.test.js        guardrails, bandit, lifecycle, pilot maths, coach, store
+test/closed-loop.test.js   events → recommendation → outcome → experiment → learning
+test/security.test.js      sessions, scoping, cross-seller 403s, validation, no stack traces
+test/idempotency.test.js   replay, conflicting bodies, in-flight keys
+test/ui-smoke.mjs          headless walk-through of the wired page against a live server
+docs/API.md                route reference
+docs/DECK_FIDELITY.md      what matches the deck, and every deliberate difference
+docs/snapshots/*.html      what the wired app looks like right now, with the server's
+                           numbers baked in - viewable with no server running
 ```
 
-Tests use a throwaway SQLite file (`backend/app/tests/conftest.py`), so they never touch the demo
-database. Everything is deterministic: same seed, same numbers on every run.
+The front-end prototype itself — what each screen does, a five-minute demo script,
+the file map, where to change constants, and its honest limits — is documented in
+[`reference/README.prototype.md`](reference/README.prototype.md).
 
----
+## How to look at it
 
-## 8. Troubleshooting
+1. **Live, on your machine:** `npm start` then <http://localhost:8787>.
+2. **No server at all:** open `public/index.offline.html` (the original
+   single-file demo) or any file in `docs/snapshots/` — the snapshots are frozen
+   pictures of the wired app with the API's numbers already rendered.
 
-| Symptom | Fix |
-| --- | --- |
-| `Model file data/models/v1.json is missing` | run `make train` (or restore the committed file) |
-| Opening `/` shows JSON, not the app | `frontend/dist` was missing when uvicorn started → `make build`, then restart |
-| `make e2e` fails to launch a browser | `cd frontend && npx playwright install chromium` (already part of `make setup`); on Debian/Ubuntu also install the system libs printed by `npx playwright install-deps chromium --dry-run` |
-| `429 Too Many Requests` after clicking logins quickly | demo login is rate limited to 10/min by design (SPEC 21); wait a minute |
-| Demo numbers look wrong / database half-seeded | `make reset` |
-| Port 8000 already in use | stop the other process, or run `cd backend && uvicorn app.main:app --port 8010` |
+## What this deliberately is not
 
----
-
-## 9. Known limitations (stated, not hidden)
-
-* Costs and freight are **Illustrative** inputs; in production they come from the seller's ledger.
-* Calibration is measured on synthetic hold-outs — the number that matters is ECE on real data,
-  which this prototype cannot show.
-* The employee view is a **simulated** rollout with a heuristic accept/apply rule: it demonstrates
-  governance, not measured lift.
-* No live monitoring, no retraining pipeline, no shadow-mode comparison against an incumbent price
-  engine; experiments are designed but never run on real traffic.
-* Customer view is intentionally minimal (P2 scope).
+ProfitPilot prices first, then tells you when price is not the problem. Cost
+control, supply, lead times and cash flow are the 2.0 programmes and need the
+seller's opt-in — the modules are implemented and routed, but they are off by
+default. All numbers are illustrative planning defaults from the deck; there is no
+real Meesho data anywhere in this repository, no rival price is read from any
+source, the analysis uses SKU-week aggregates and the seller's own inputs, and the
+legal guardrails (Competition Act 2002 + 2023 amendment, DPDP Act 2023) are stated
+in `/api/meta` and enforced by what the API refuses to accept.
