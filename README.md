@@ -81,6 +81,7 @@ Environment: `PORT` (default 8787), `HOST` (default 0.0.0.0), `PP_DATA_DIR`
 | Actions & trust | `POST /api/actions/step`, `POST /api/actions/:id/:step`, `GET /api/actions/trust/:sellerId` |
 | Ops | `GET/POST /api/jobs*`, `GET /api/metrics`, `GET /api/admin/audit\|export\|docs` |
 | Sessions | `POST /api/session` (seller scoping; cross-seller reads are 403) |
+| Static pages | `GET /` (the wired prototype), `GET /kanban.html` (the proposal board), `GET /index.offline.html` (offline demo) |
 
 Full list with one-line summaries: [`docs/API.md`](docs/API.md) or `GET /api/routes`.
 
@@ -204,6 +205,8 @@ test/security.test.js      sessions, scoping, cross-seller 403s, validation, no 
 test/idempotency.test.js   replay, conflicting bodies, in-flight keys
 test/ui-smoke.mjs          headless walk-through of the wired page against a live server
 docs/API.md                route reference
+docs/KANBAN.md             the board: every deck proposal, its slide, and where it stands
+                           (rendered twin: public/kanban.html)
 docs/DECK_FIDELITY.md      what matches the deck, and every deliberate difference
 docs/snapshots/*.html      what the wired app looks like right now, with the server's
                            numbers baked in - viewable with no server running
@@ -215,8 +218,14 @@ the file map, where to change constants, and its honest limits — is documented
 
 ## How to look at it
 
-1. **Live, on your machine:** `npm start` then <http://localhost:8787>.
-2. **No server at all:** open `public/index.offline.html` (the original
+1. **The 60-second version for a reviewer:** open
+   <http://localhost:8787/kanban.html> (or [`public/kanban.html`](public/kanban.html)
+   with no server at all) — every proposal in the deck on one board, each card
+   naming its slide, what it does, the artefact that proves it, and whether it is
+   shipped, in build, or still proposed. The same content inside the repo is
+   [`docs/KANBAN.md`](docs/KANBAN.md).
+2. **Live, on your machine:** `npm start` then <http://localhost:8787>.
+3. **No server at all:** open `public/index.offline.html` (the original
    single-file demo) or any file in `docs/snapshots/` — the snapshots are frozen
    pictures of the wired app with the API's numbers already rendered.
 

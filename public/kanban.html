@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ProfitPilot — the deck's proposals, on a board</title>
+<style>
+  :root {
+    --ink:#12161c; --muted:#5b6675; --line:#e3e7ee; --bg:#f6f8fb; --card:#ffffff;
+    --shipped:#0f9d58; --shipped-bg:#e8f6ee; --build:#b07500; --build-bg:#fdf3e0; --next:#5b6675; --next-bg:#eef1f6;
+    --accent:#7a1fa2;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; }
+  .wrap { max-width:1320px; margin:0 auto; padding:28px 22px 60px; }
+  header.top { background:#fff; border:1px solid var(--line); border-radius:14px; padding:22px 24px; }
+  .kicker { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; }
+  h1 { font-size:26px; line-height:1.25; margin:8px 0 6px; }
+  .lede { color:var(--muted); max-width:80ch; margin:0 0 14px; }
+  .quote { border-left:3px solid var(--accent); padding:2px 0 2px 12px; margin:12px 0 16px; font-style:italic; color:#2a3340; }
+  .stats { display:flex; flex-wrap:wrap; gap:10px; }
+  .stat { background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:13px; }
+  .stat b { font-size:17px; display:block; }
+  .legend { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; font-size:12.5px; color:var(--muted); align-items:center; }
+  .legend .chip { margin-right:2px; }
+  .board { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:18px; align-items:start; }
+  @media (max-width:1000px) { .board { grid-template-columns:1fr 1fr; } }
+  @media (max-width:680px) { .board { grid-template-columns:1fr; } }
+  .col { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; }
+  .col.shipped { border-top:4px solid var(--shipped); }
+  .col.inbuild { border-top:4px solid var(--build); }
+  .col.next { border-top:4px solid var(--next); }
+  .col-head h2 { font-size:15px; margin:2px 0 4px; }
+  .col-head p { font-size:12.5px; color:var(--muted); margin:0 0 6px; }
+  .count { font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; }
+  .card { border:1px solid var(--line); border-radius:11px; padding:12px 13px; margin-bottom:10px; background:var(--card); }
+  .card-top { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; }
+  .chip { font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; padding:3px 7px; border-radius:999px; white-space:nowrap; }
+  .chip.shipped { background:var(--shipped-bg); color:#0b6b3c; }
+  .chip.inbuild { background:var(--build-bg); color:#7a5200; }
+  .chip.next { background:var(--next-bg); color:#3f4a58; }
+  .ref { font-size:11px; color:var(--muted); white-space:nowrap; }
+  .card h3 { font-size:14px; margin:0 0 5px; }
+  .card p { margin:0 0 7px; font-size:13px; color:#2a3340; }
+  .evidence { font-size:12px; color:var(--muted); border-top:1px dashed var(--line); padding-top:7px; margin-bottom:0 !important; }
+  .ev-label { text-transform:uppercase; letter-spacing:.09em; font-size:10px; color:#8b95a3; margin-right:4px; }
+  aside { margin-top:18px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px 22px; }
+  aside h2 { font-size:16px; margin:0 0 8px; }
+  aside ul { margin:0; padding-left:18px; color:#2a3340; font-size:13.5px; }
+  aside li { margin-bottom:5px; }
+  .foot { margin-top:20px; color:var(--muted); font-size:12px; }
+  .foot code { background:#fff; border:1px solid var(--line); border-radius:6px; padding:1px 5px; font-size:11.5px; }
+  @media print {
+    body { background:#fff; }
+    .col { break-inside:avoid; }
+    .card { break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="kicker">Meesho DICE Challenge S3 · Business Track · Team Fiery Diamonds, IIT Madras</div>
+    <h1>ProfitPilot — every proposal in the deck, and where each one stands</h1>
+    <p class="lede">
+      A board, not a brochure: each card is something the deck proposes, the slide it comes from,
+      what it actually does, and the artefact that proves it exists in this repository.
+      Cards marked <b>proposed next</b> are not built — they are the roadmap, shown honestly.
+    </p>
+    <p class="quote">The seller never asks “what price should I set?” — the system first asks
+      <b>“what is actually hurting this product?”</b></p>
+    <div class="stats">
+      <div class="stat"><b>35</b>proposals tracked</div>
+      <div class="stat"><b>26</b>shipped &amp; verified</div>
+      <div class="stat"><b>4</b>in build</div>
+      <div class="stat"><b>5</b>proposed next</div>
+      <div class="stat"><b>92</b>automated tests</div>
+      <div class="stat"><b>128</b>route checks</div>
+      <div class="stat"><b>53</b>UI checks</div>
+    </div>
+    <div class="legend">
+      <span class="chip shipped">Shipped &amp; verified</span>
+      <span class="chip inbuild">In build</span>
+      <span class="chip next">Proposed next</span>
+      <span>· every card names its deck slide · all numbers illustrative, no real Meesho data</span>
+    </div>
+  </header>
+
+  <div class="board">
+    <section class="col shipped">
+      <header class="col-head">
+        <h2>Shipped &amp; verified</h2>
+        <p>Built, served by the API, and covered by the test suites.</p>
+        <div class="count">26 cards</div>
+      </header>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 2 · box 1–2</span></div>
+        <h3>Return-adjusted floor engine</h3>
+        <p>F = C_s + C_pack + C_fwd + C_ret + C_RTO + other, divided by the kept-order rate k. Every cost is the seller's own input; the floor is never a market guess.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/floor.js · GET /api/floors · GET /api/skus/:key/floor</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 2 · box 1/3</span></div>
+        <h3>The five category floors, to the rupee</h3>
+        <p>₹309 kurti · ₹346 lunch box · ₹166 serum · ₹266 romper · ₹367 vase.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/config/deck.js · parity test asserts each</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 2 · box 5</span></div>
+        <h3>Dual pricing: easy vs no-return</h3>
+        <p>P_easy = F + T and P_no = F − C_ret + T, the gap ≈ C_ret, with the deck's assumption that >30% pick no-return and ~10% fewer returns come back.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/recommend.js · dualPriceMenu · kurti ₹369 / ₹339</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 2 · box 3</span></div>
+        <h3>COD share and RTO move with price</h3>
+        <p>The payment mix is a function of price, so a discount raises RTO — the reason a cut is not a free win.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/demand.js · riskMixAtPrice</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 2 · box 6</span></div>
+        <h3>Four goal modes on any SKU</h3>
+        <p>cash · growth · margin · clear, each with its objective and its Why.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/modes.js · GET /api/listings/:id/recommendation?mode=</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 3 · box 1–2</span></div>
+        <h3>Cold-start plan for day 0</h3>
+        <p>Prior → comparables → features → risk → matrix → a price hypothesis, with every input named and sourced.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/launch.js · GET /api/listings/:id/launch-plan</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 4 · box 1–2</span></div>
+        <h3>Lifecycle curve and stage windows</h3>
+        <p>The deck's Bass-like curve q(t) verbatim, and stage windows that scale with the category's life (a 60-day kurti is mature; a 60-day lunch box is launching).</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/lifecycle.js · test asserts the formula to 1e-12</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 4 · box 3–4</span></div>
+        <h3>Triggers, rival test, markdown ladder</h3>
+        <p>Hold-versus-match answered on profit per day, and a ladder that never goes below the floor.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/lifecycle.js · priceLadder · M3 = max(F+, ceil9(M2 × 0.92))</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 4 · box 5</span></div>
+        <h3>Six exits, with the carry cost</h3>
+        <p>Bundle · markdown · wider reach · B2B · return-donate · park, each with sell-through, net cash and ₹ recovered per unit.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/lifecycle.js · exits · ~2%/month carry</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 5 · box 1–5</span></div>
+        <h3>Diagnose first — price last</h3>
+        <p>Eight nodes: visibility → CTR → CVR → returns/RTO → cost, and the price node runs last. Rebuilt as a runtime bottleneck read in v2.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/diagnose.js · POST /api/listings/:id/diagnose</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 6 · box 3</span></div>
+        <h3>The guardrail layer</h3>
+        <p>Hard floor · ±8% per move · 7-day cooldown · ≤2 moves/month · 1,000-view sanity · 14-day auto-revert with 28-day confirmation. Enforced in the one function that writes a price.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/domain/apply.js · below-floor publish → 409 + every failed check</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 5 · box 3, slide 6</span></div>
+        <h3>Panic brake and Loss Warning</h3>
+        <p>A cut without the price–value branch firing is blocked, and any below-floor price comes back with ₹ lost per kept order.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/guardrails.js · panicBrake · lossWarning</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 6 · box 4</span></div>
+        <h3>Manual → Co-Pilot → Autopilot</h3>
+        <p>Co-Pilot unlocks after 30 orders, Autopilot after 4 accepted wins against the holdout — derived from real accepted decisions, and it can never unlock the floor.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/domain/trust.js · GET /api/actions/trust/:sellerId</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 7 · box 4</span></div>
+        <h3>Constrained Thompson bandit + 5% holdout</h3>
+        <p>Arms rotate by day, w = n / (n + n₀), and a permanent 5% holdout keeps a baseline. The sub-floor arm is blocked with zero pulls.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/bandit.js · POST /api/engine/bandit/run</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 8 · box 1–4</span></div>
+        <h3>Pilot design: 250 vs 250, 12 weeks</h3>
+        <p>n = 251 per arm from the deck's own formula, two cities with a backup, four stop rules and five rollout phases.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/pilot.js · GET /api/pilot/design</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 8 · box 5–6, slide 9 · box 4</span></div>
+        <h3>Impact model and city scoring</h3>
+        <p>Profit per kept order ₹84 → ₹104.5 (+24.4%), kept orders 28 → 31, cohort ₹65.5 cr → ₹90 cr; city scores Surat 4.55 / Rajkot 4.10 / Tiruppur 3.60.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/pilot.js · waterfallProfit · cityRanking</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 10 · box 1–4</span></div>
+        <h3>The 2.0 programmes and reorder point</h3>
+        <p>Starter pack · fast movers · maker programme · stock recovery, plus ROP = d × L + z·σ·√L, pooling and the packaging audit.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/programmes.js · routed, off by default until a seller opts in</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 10 · box 6, slide 11</span></div>
+        <h3>Legal and privacy guardrails</h3>
+        <p>SKU-week aggregates only, no shared rival data, no hub-and-spoke; Competition Act 2002 + 2023 amendment and DPDP Act 2023 stated in every payload's _meta.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/config/deck.js · GET /api/meta · nothing in the API accepts a rival's price</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">slide 11 · box 1</span></div>
+        <h3>AI coach, English and Hinglish</h3>
+        <p>15+ intents, each answer carrying its source, a categorical confidence and the live floor — and tap-only money actions it never takes itself.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/engine/coach.js · POST /api/coach/ask</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">the demo itself</span></div>
+        <h3>The prototype, wired to the API</h3>
+        <p>The same single-file prototype on the server, with the browser engine kept as the fallback so the offline demo still works.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> public/index.html + public/api-bridge.js · 53 UI checks</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">extension beyond the deck</span></div>
+        <h3>A closed seller loop around it</h3>
+        <p>Sessions and scoping · 14-type event model · recommendation state machine · deterministic outcome calculator · experiments with a claim guard · scheduler · action queue with an audit trail · version registry · idempotency · health, jobs and metrics.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/domain/* · src/jobs/* · 92 tests · 128 route checks</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">Decision Intelligence v2</span></div>
+        <h3>v2 · diagnosis of the real bottleneck</h3>
+        <p>PRICE / CATALOGUE / DEMAND / FULFILMENT / RETURN_RTO / INVENTORY / PROMOTION / MIXED_UNCERTAIN, decided from evidence with price strictly last — and MIXED_UNCERTAIN when the evidence does not justify any move.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/domain/bottleneck.js · scenario lab B reads CATALOGUE, not a discount</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">Decision Intelligence v2</span></div>
+        <h3>v2 · counterfactual price curve</h3>
+        <p>Every candidate price with its funnel, economics and risk flags, the floor marked on the curve, and a recommendation that is neither the cheapest nor the highest-revenue candidate.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/domain/counterfactual.js · labelled “Illustrative model estimate”</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">Decision Intelligence v2</span></div>
+        <h3>v2 · simulator and scenario lab A–H</h3>
+        <p>A seeded seller/market simulator that emits into the real event pipeline, and eight resettable scenarios that each declare the bottleneck they should produce — checked from evidence, never relabelled.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/sim/* · calibrate() → 8/8 match their intent</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">Decision Intelligence v2</span></div>
+        <h3>v2 · inventory, promotion, portfolio, regional</h3>
+        <p>Stock age, cover, sell-through and stockout risk; effective price after promotions with contradiction detection; overlap between a seller's own SKUs; aggregated pincode clusters with operational (never personalised) advice.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/domain/{inventory,promotion,portfolio,regions}.js</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip shipped">Shipped &amp; verified</span><span class="ref">Decision Intelligence v2</span></div>
+        <h3>v2 · baseline comparison</h3>
+        <p>Static price vs a rule-based discount vs the full engine, over the same simulated environment, with no manufactured superiority and no significance claim from a single run.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/domain/baselines.js · honesty {runs_per_strategy: 1, significance: 'not established'}</p>
+      </article>
+    </section>
+    <section class="col inbuild">
+      <header class="col-head">
+        <h2>In build</h2>
+        <p>The pieces of Decision Intelligence v2 that are still being finished.</p>
+        <div class="count">4 cards</div>
+      </header>
+      <article class="card">
+        <div class="card-top"><span class="chip inbuild">In build</span><span class="ref">Decision Intelligence v2</span></div>
+        <h3>v2 · the HTTP surface</h3>
+        <p>The route modules that expose the v2 domain work: counterfactual, portfolio, inventory, promotion, regional, evaluation and the scenario lab, plus a price preview endpoint.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> target: POST /api/listings/:id/counterfactual · /api/evaluation/compare · /api/lab/*</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip inbuild">In build</span><span class="ref">Decision Intelligence v2</span></div>
+        <h3>Decision Lab / Scenario Lab screen</h3>
+        <p>A new screen beside the existing ones — no redesign — with the “WHY THIS DECISION?” card driven by real engine output in English and Hinglish.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> target: public/ (existing screens untouched, badge and fallback preserved)</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip inbuild">In build</span><span class="ref">Decision Intelligence v2</span></div>
+        <h3>The dedicated v2 test suites</h3>
+        <p>Seed determinism, event correctness, reset; counterfactuals; diagnosis; portfolio; inventory; promotion; baselines sharing one environment; and an end-to-end loop.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> target: npm test, npm run smoke, npm run test:ui after each phase</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip inbuild">In build</span><span class="ref">deliverables</span></div>
+        <h3>Architecture doc and the final report</h3>
+        <p>BACKEND_ARCHITECTURE.md, the refreshed API reference, the 13-item report (files, routes, data structures, state machines, screens, test count, example outputs, simulated vs implemented, commands, 3-minute demo) — and this board.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> target: docs/BACKEND_ARCHITECTURE.md</p>
+      </article>
+    </section>
+    <section class="col next">
+      <header class="col-head">
+        <h2>Proposed next</h2>
+        <p>What the deck proposes beyond the built system — clearly not shipped.</p>
+        <div class="count">5 cards</div>
+      </header>
+      <article class="card">
+        <div class="card-top"><span class="chip next">Proposed next</span><span class="ref">slide 8–9 · proposed</span></div>
+        <h3>Run the pilot (4 cities, 12 weeks)</h3>
+        <p>The design, the sample size and the stop rules are built and routed; the pilot itself needs real sellers and real traffic. The deck's roadmap is the next step, not a shipped claim.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> needs: real traffic · GET /api/pilot/design is ready</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip next">Proposed next</span><span class="ref">slide 8 · pilot gate</span></div>
+        <h3>Reconcile the floor against settlements</h3>
+        <p>The pilot gate is that the computed floor lands within ±5% of the seller's actual settlement. That check can only run on real payouts.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> needs: settlement data (seller's own)</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip next">Proposed next</span><span class="ref">slide 7 · box 3</span></div>
+        <h3>Ingest the seller&#x27;s own catalogue</h3>
+        <p>Today the simulator and seeds stand in for the feed. Reading a seller's own catalogue and order events is the same event interface, pointed at real data — still SKU-week aggregates, still no rival data.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> needs: Meesho-side integration</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip next">Proposed next</span><span class="ref">slide 2.10 of the fidelity notes</span></div>
+        <h3>Fitted models behind the same interfaces</h3>
+        <p>Every model sits behind a declared replacement point. When the pilot produces data, the priors can be replaced by fitted models without touching the decision layer — no ML is claimed today.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> src/models/interfaces.js · replacement points</p>
+      </article>
+      <article class="card">
+        <div class="card-top"><span class="chip next">Proposed next</span><span class="ref">slide 10 · proposed</span></div>
+        <h3>Switch on the 2.0 programmes</h3>
+        <p>Cost control, supply, lead times and cash flow are implemented and routed, but off by default: they change the seller's operations, so they need explicit opt-in.</p>
+        <p class="evidence"><span class="ev-label">Evidence</span> implemented, deliberately not enabled</p>
+      </article>
+    </section>  </div>
+
+  <aside>
+    <h2>Deliberately not claimed</h2>
+    <ul>
+      <li>No rival or competitor data anywhere — the market is a declared assumption of a stress test, never a rival's price.</li>
+      <li>No personalised or discriminatory pricing: regional findings become operational advice, never a different price for a different shopper.</li>
+      <li>No causal claims from simulation: simulated results are labelled simulated / illustrative, and real claims still need treatment-versus-holdout evidence.</li>
+      <li>No fake machine learning: the models are deterministic, and each one declares what would replace it.</li>
+    </ul>
+  </aside>
+
+  <p class="foot">
+    Source of truth: <code>docs/DECK_FIDELITY.md</code> (slide-by-slide) and <code>src/config/deck.js</code>
+    (every constant, with its slide). Verify any “shipped” card yourself: <code>npm test</code>,
+    <code>npm run smoke</code>, <code>npm run test:ui</code>, then open <code>http://localhost:8787</code>.
+    Board written 2026-10-05. All values are illustrative planning defaults from the deck.
+  </p>
+
+</div>
+</body>
+</html>
