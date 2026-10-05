@@ -1,0 +1,23 @@
+{
+  "name": "profitpilot-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ProfitPilot 1.0 backend - the pricing engine behind the Meesho DICE S3 prototype (pricing across a product's lifecycle).",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/parity.test.js test/engine.test.js test/closed-loop.test.js test/security.test.js test/idempotency.test.js",
+    "test:ui": "node test/ui-smoke.mjs",
+    "smoke": "node scripts/smoke-routes.mjs",
+    "reset": "node scripts/reset-db.js",
+    "routes": "curl -s localhost:8787/api/routes | head -80",
+    "shots": "node scripts/snapshot.mjs",
+    "demo": "node scripts/demo-closed-loop.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

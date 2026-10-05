@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5B0A48">
+<meta name="description" content="ProfitPilot: a pricing co-pilot for new-to-online Meesho sellers. Frontend-only demo for Meesho DICE Challenge S3. Illustrative numbers.">
+<title>ProfitPilot Demo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235B0A48'/%3E%3Cpath d='M18 42l10-10 7 7 12-15' stroke='%23F58A0B' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#FFF6E5;--sf:#fff;--tx:#2a1226;--mu:#6d5a68;--pl:#5B0A48;--pk:#C2185B;--sa:#F58A0B;--gr:#1B8A5A;--rd:#D32F2F;--bl:#2A7FC1;--tl:#1F8F8A;--ln:#eadfd0;--sd:#f7ecf1;--desk:#f3e7ea;--st:#1B8A5A;--onp:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1320;--sf:#2b1c2c;--tx:#f6ecf3;--mu:#c3aebe;--pl:#e9b6d8;--pk:#ff6fa5;--ln:#463347;--sd:#3a2536;--desk:#150d16;--onp:#2a1226}}
+:root[data-theme="dark"]{--bg:#1f1320;--sf:#2b1c2c;--tx:#f6ecf3;--mu:#c3aebe;--pl:#e9b6d8;--pk:#ff6fa5;--ln:#463347;--sd:#3a2536;--desk:#150d16;--onp:#2a1226}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--desk);color:var(--tx);font:16px/1.42 Inter,"Noto Sans","Noto Sans Devanagari",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+#app{max-width:560px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative}
+button{font:inherit;color:inherit}
+input,select{font:inherit;color:var(--tx)}
+.top{position:sticky;top:0;z-index:20;background:var(--pl);color:#fff;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;display:flex;align-items:center;gap:8px}
+:root[data-theme="dark"] .top{background:#3d1035}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .top{background:#3d1035}}
+.top .ham{background:none;border:0;color:#fff;font-size:22px;width:36px;height:36px;cursor:pointer;border-radius:10px}
+.top .brand{font-weight:800;font-size:16px;letter-spacing:.2px;display:flex;align-items:center;gap:6px}
+.top .brand small{font-weight:600;font-size:10px;background:var(--sa);color:#fff;border-radius:99px;padding:1px 7px}
+.sp{flex:1}
+.lang{border:1px solid #ffffff99;background:none;color:#fff;border-radius:99px;padding:4px 10px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+.ctx{position:sticky;top:calc(52px + env(safe-area-inset-top,0px));z-index:19;background:var(--sd);display:flex;gap:6px;padding:7px 12px;overflow-x:auto;scrollbar-width:none}
+.ctx::-webkit-scrollbar{display:none}
+.ctx button{white-space:nowrap;border:1px solid var(--ln);background:var(--sf);border-radius:99px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;color:var(--tx)}
+.ctx .mc{background:var(--pl);color:var(--onp);border-color:var(--pl)}
+.ctx .fc{color:var(--gr)}
+main{padding:6px 16px calc(110px + env(safe-area-inset-bottom,0px))}
+main.in{animation:fi .18s ease}@keyframes fi{from{opacity:.3;transform:translateY(6px)}}
+h1{font-size:23px;line-height:1.2;color:var(--pl);margin:10px 0 4px}
+h2{font-size:18px;color:var(--pl);margin:20px 0 8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+h3{font-size:16px;margin:0 0 6px;color:var(--pl)}
+p{margin:6px 0}
+.mu{color:var(--mu);font-size:14px}.sm{font-size:12px}.xs{font-size:11px}
+.b{font-weight:800}.c{text-align:center}.r{text-align:right}
+.up{color:var(--gr)}.dn{color:var(--rd)}.am{color:var(--sa)}
+.demo{background:rgba(245,138,11,.14);border-left:4px solid var(--sa);padding:6px 10px;border-radius:8px;font-size:12px;margin:8px 0}
+.tag{display:inline-block;font-size:10px;background:var(--ln);color:var(--mu);padding:2px 7px;border-radius:99px;font-weight:700;letter-spacing:.3px;vertical-align:middle}
+.tag.il{background:rgba(245,138,11,.18);color:#a85b00}
+.tag.fut{background:rgba(42,127,193,.16);color:var(--bl)}
+.card{background:var(--sf);border-radius:16px;padding:14px;box-shadow:0 2px 12px rgba(91,10,72,.08);margin:12px 0}
+.card.flat{box-shadow:none;border:1px solid var(--ln)}
+.btn{height:46px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;padding:0 14px;border:2px solid transparent;background:var(--sf);touch-action:manipulation}
+.btn.p{background:var(--gr);color:#fff}
+.btn.pl{background:var(--pl);color:var(--onp)}
+.btn.s{border-color:var(--pl);color:var(--pl)}
+.btn.n{border-color:var(--rd);color:var(--rd)}
+.btn.w{border-color:var(--pk);color:var(--pk)}
+.btn.g{border-color:var(--ln);color:var(--mu)}
+.btn.sm{height:auto;min-height:36px;padding-top:4px;padding-bottom:4px;font-size:13px;padding:0 10px;border-radius:10px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.full{width:100%}
+.btns{display:flex;gap:8px;margin-top:10px}.btns .btn{flex:1;min-width:0;padding:0 6px}
+.lk{background:none;border:0;color:var(--pk);font-weight:700;cursor:pointer;font-size:14px;padding:6px 2px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--ln)}.row:last-child{border-bottom:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--sf);border-radius:14px;padding:10px 12px;box-shadow:0 2px 10px rgba(91,10,72,.07)}
+.kpi .l{font-size:12px;color:var(--mu);font-weight:600}.kpi .v{font-size:24px;font-weight:800;color:var(--pl);line-height:1.15}.kpi small{font-size:11px}
+.pill{display:inline-block;font-size:11px;font-weight:800;color:#fff;padding:3px 10px;border-radius:99px;background:var(--gr)}
+.stg{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;color:#fff}
+.dot{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:12px}.dot:before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.big{font-size:30px;font-weight:800;color:var(--pl);line-height:1.1}
+.huge{font-size:52px;font-weight:800;color:var(--pl);line-height:1}
+.strike{text-decoration:line-through;color:var(--mu);font-size:.7em}
+.rec{border-left:6px solid var(--sa)}
+.rec.hold{border-left-color:var(--tl)}
+.rec.down{border-left-color:var(--rd)}
+.rec .pp{display:flex;align-items:baseline;gap:8px;font-size:26px;font-weight:800;color:var(--pl);flex-wrap:wrap}
+.rec .meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:13px;margin:8px 0}.rec .meta b{display:block;color:var(--mu);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+.done{padding:10px;border-radius:10px;background:rgba(27,138,90,.14);color:var(--gr);font-weight:700;font-size:14px;margin-top:10px}
+.done.skip{background:var(--ln);color:var(--mu)}
+.amber{background:rgba(245,138,11,.14);border-left:4px solid var(--sa);padding:10px 12px;border-radius:8px;font-size:14px;margin:10px 0}
+.redbox{border:2px solid var(--rd);background:rgba(211,47,47,.08);border-radius:14px;padding:12px;margin:12px 0}
+.redbox h3{color:var(--rd)}
+.greenbox{border:2px solid var(--gr);background:rgba(27,138,90,.08);border-radius:14px;padding:12px;margin:12px 0}
+.logic{border:2px dashed var(--pl);border-radius:14px;padding:12px;margin:12px 0;background:var(--sd)}
+.logic .lh{font-size:11px;font-weight:800;color:var(--pl);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.logic .lh span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--mu)}
+.tn{border-left:3px solid var(--ln);margin-left:8px;padding:2px 0 2px 14px}
+.tq{position:relative;background:var(--sf);border:2px solid var(--ln);border-radius:10px;padding:7px 10px;margin:6px 0;font-size:14px}
+.tq:before{content:"";position:absolute;left:-23px;top:50%;margin-top:-7px;width:12px;height:12px;border-radius:50%;background:var(--ln);border:2px solid var(--sd)}
+.tq.on{border-color:var(--pl)}.tq.on:before{background:var(--pl)}
+.tq .br{display:block;font-size:12px;color:var(--mu);margin-top:2px}
+.tq .br b{color:var(--tx)}
+.tq .br .hit{color:var(--pk);font-weight:800}
+.tout{display:inline-block;margin-top:4px;padding:3px 9px;border-radius:99px;background:var(--pl);color:var(--onp);font-size:12px;font-weight:800}
+.ck{display:flex;gap:8px;align-items:flex-start;margin:5px 0;font-size:14px}.ck b{width:18px;flex:none;text-align:center}
+.ck.ok b{color:var(--gr)}.ck.bad b{color:var(--rd)}.ck.warn b{color:var(--sa)}.ck.na b{color:var(--mu)}
+table.t{border-collapse:collapse;width:100%;font-size:13px}table.t th{text-align:left;font-size:10px;color:var(--mu);text-transform:uppercase;padding:6px 4px;border-bottom:2px solid var(--ln);letter-spacing:.3px}table.t td{padding:8px 4px;border-bottom:1px solid var(--ln);vertical-align:top}
+table.t tr.on td{background:rgba(245,138,11,.14)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.seg{display:flex;background:var(--sd);border-radius:12px;padding:3px;gap:3px;overflow-x:auto}
+.seg button{flex:1;border:0;background:none;padding:8px 6px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;color:var(--mu);white-space:nowrap}
+.seg button.on{background:var(--sf);color:var(--pl);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chipb{border:1px solid var(--pl);background:var(--sf);color:var(--pl);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chipb.on{background:var(--pl);color:var(--onp)}
+label.f{display:block;font-size:13px;font-weight:700;color:var(--mu);margin:10px 0 4px}
+input.num,select.num{width:100%;font-size:20px;font-weight:700;border:2px solid var(--ln);border-radius:12px;padding:8px 12px;background:var(--bg)}
+input.num.big{font-size:34px}
+input[type=range]{width:100%;accent-color:var(--pk);height:28px;margin:4px 0}
+.rv{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+.stepper{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0}.stepper button{width:48px;height:48px;border-radius:50%;border:2px solid var(--pl);background:var(--sf);color:var(--pl);font-size:24px;cursor:pointer}.stepper b{font-size:32px;min-width:100px;text-align:center}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:560px;background:var(--sf);display:flex;justify-content:space-around;padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 12px rgba(91,10,72,.12);z-index:30}
+.nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--mu);gap:1px;cursor:pointer;padding:4px 2px;font-weight:700;flex:1;min-width:0}
+.nav button span{font-size:21px;line-height:1.1}.nav button.on{color:var(--pk)}
+.fab{position:fixed;right:max(12px,calc(50% - 268px));bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--pl);color:var(--onp);border:0;border-radius:50%;width:52px;height:52px;padding:0;font-size:24px;box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer;z-index:25}
+.shade{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;animation:fd .15s}@keyframes fd{from{opacity:0}}
+.sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:560px;max-height:88vh;overflow:auto;background:var(--sf);border-radius:20px 20px 0 0;padding:8px 18px calc(20px + env(safe-area-inset-bottom,0px));z-index:41;animation:su .2s ease}
+@keyframes su{from{transform:translate(-50%,40px);opacity:0}}
+.sheet .grab{width:44px;height:5px;border-radius:9px;background:var(--ln);margin:4px auto 10px}
+.sheet h3{font-size:20px;margin:0 0 8px}
+.wy{display:grid;gap:8px;margin:8px 0}
+.wr{border:1px solid var(--ln);border-radius:12px;padding:8px 10px}
+.wr>b{display:block;font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--pk);margin-bottom:2px}
+.wr ul{margin:4px 0;padding-left:18px}.wr li{margin:3px 0;font-size:14px}.wr p{font-size:14px;margin:2px 0}
+.conf{display:inline-block;font-weight:800;font-size:12px;padding:2px 9px;border-radius:99px;color:#fff}
+.drawer{position:fixed;top:0;bottom:0;left:max(0px,calc(50% - 280px));width:86%;max-width:340px;background:var(--sf);z-index:41;overflow:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 30px;animation:sl .2s ease;box-shadow:4px 0 24px rgba(0,0,0,.25)}
+@keyframes sl{from{transform:translateX(-30px);opacity:0}}
+.drawer a{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;color:var(--tx);text-decoration:none}
+.drawer a.on{background:var(--sd)}
+.drawer a span.i{font-size:22px;width:28px;text-align:center}
+.drawer a b{display:block;font-size:15px}.drawer a small{color:var(--mu);font-size:12px;display:block}
+.toast{position:fixed;top:calc(96px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--pl);color:var(--onp);padding:10px 16px;border-radius:99px;z-index:60;font-size:14px;max-width:90%;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.dots{display:flex;gap:6px;justify-content:center;padding:8px 0 2px}.dots i{width:8px;height:8px;border-radius:9px;background:var(--ln)}.dots i.on{background:var(--pk);width:20px}.dots i.dn{background:var(--sa)}
+.stack{display:flex;height:46px;border-radius:12px;overflow:hidden;margin:10px 0}.stack>div{height:100%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800;overflow:hidden;white-space:nowrap}
+.lg{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12px}.lg span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:5px;vertical-align:-1px}
+.ruler{position:relative;height:92px;margin:10px 8px 4px}
+.ruler .ln{position:absolute;top:44px;left:0;right:0;height:3px;background:var(--ln)}
+.ruler .band{position:absolute;top:34px;height:24px;background:rgba(27,138,90,.2);border:1px solid var(--gr);border-radius:6px}
+.ruler .hz{position:absolute;top:34px;height:24px;left:0;background:repeating-linear-gradient(45deg,rgba(211,47,47,.35) 0 4px,transparent 4px 8px)}
+.ruler .d{position:absolute;top:41px;width:8px;height:8px;border-radius:50%;background:var(--gr);transform:translateX(-50%)}
+.ruler .d.r{background:var(--rd);width:13px;height:13px;top:39px;cursor:pointer}
+.ruler .lb{position:absolute;font-size:11px;font-weight:800;transform:translateX(-50%);white-space:nowrap}
+.sc{display:flex;justify-content:space-between;font-size:11px;color:var(--mu);margin:0 8px}
+.funnel{display:flex;gap:4px;align-items:flex-end;margin:10px 0}
+.funnel div{flex:1;background:var(--pl);color:var(--onp);border-radius:8px 8px 0 0;text-align:center;font-weight:800;font-size:13px;padding:4px 0;position:relative}
+.funnel div small{display:block;font-size:9px;font-weight:600;opacity:.85}
+.funnel div.k{background:var(--gr);color:#fff}
+.mopt{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--ln);cursor:pointer}.mopt.on{border-color:var(--sa);background:rgba(245,138,11,.08)}
+.mopt .ic{font-size:26px}
+.mbadge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;color:#fff;letter-spacing:.4px}
+.zones{display:flex;font-size:10px;font-weight:800;text-align:center;gap:2px;margin-top:4px}.zones div{padding:3px 2px;border-radius:6px;color:#fff;white-space:nowrap;overflow:hidden}
+.ticks{position:relative;height:22px;margin:0 12px}.ticks button{position:absolute;transform:translateX(-50%);background:none;border:0;color:var(--mu);font-weight:800;font-size:12px;cursor:pointer;padding:2px}
+.ticks button.bl{color:var(--rd);text-decoration:line-through}.ticks button.st{color:var(--pk)}
+.pricehero{text-align:center;border-top:6px solid var(--st)}
+.pricehero .huge{color:var(--st)}
+.m4{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.m4 .kpi .v{font-size:26px}.m4 .kpi.neg .v{color:var(--rd)}
+.shake{animation:sh .4s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.msg{padding:9px 12px;border-radius:14px;margin:8px 0;max-width:90%;font-size:15px;line-height:1.4;animation:pop .25s ease}@keyframes pop{from{opacity:0;transform:translateY(6px)}}
+.me{background:var(--pk);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+.bub{background:var(--sf);border:1px solid var(--ln);border-bottom-left-radius:4px}
+.typ i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--mu);margin:0 2px;animation:bl 1s infinite}.typ i:nth-child(2){animation-delay:.2s}.typ i:nth-child(3){animation-delay:.4s}@keyframes bl{50%{opacity:.2;transform:translateY(-3px)}}
+.nd{position:relative;padding:8px 12px;margin:8px 0;border-radius:12px;border:2px solid var(--ln);background:var(--sf);transition:all .3s;opacity:.55;font-size:14px;cursor:pointer}
+.nd:before{content:"";position:absolute;left:-31px;top:50%;width:16px;height:16px;margin-top:-8px;border-radius:50%;background:var(--ln);border:3px solid var(--bg)}
+.nd b{display:block;font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+.nd.sc{opacity:1;border-color:var(--sa)}.nd.sc:before{background:var(--sa)}
+.nd.ok{opacity:1;border-color:var(--gr)}.nd.ok:before{background:var(--gr)}
+.nd.bad{opacity:1;border-color:var(--rd);background:rgba(211,47,47,.08)}.nd.bad:before{background:var(--rd);box-shadow:0 0 0 5px rgba(211,47,47,.25)}
+.nd.sk{opacity:.4}
+.ntree{margin:8px 0 0 12px;border-left:3px solid var(--ln);padding-left:20px}
+.flow{display:grid;gap:8px}
+.fl{border-radius:12px;padding:10px;border:2px solid var(--ln)}.fl small{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--mu);display:block}.fl b{font-size:15px}
+.road{display:flex;gap:3px;margin-top:6px}.road button{flex:1;border:0;padding:10px 1px 7px;font-size:10px;font-weight:800;background:color-mix(in srgb,var(--c) 18%,var(--sf));color:var(--c);clip-path:polygon(0 0,90% 0,100% 50%,90% 100%,0 100%,8% 50%);cursor:pointer;min-width:0}
+.road button.on{background:var(--c);color:#fff}.road button small{display:block;font-weight:600;font-size:9px;opacity:.9}
+.mt{height:8px;background:var(--ln);border-radius:5px;margin:3px 0 8px;overflow:hidden}.mt i{display:block;height:8px;border-radius:5px;background:var(--tl)}
+.chat{display:flex;flex-direction:column}
+.cd{border:2px solid var(--sa);border-radius:12px;padding:10px;margin-top:6px;background:var(--sf)}
+.cbar{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));background:var(--bg);padding:6px 0 4px;z-index:5}
+.cchips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}.cchips::-webkit-scrollbar{display:none}
+.cchips button{white-space:nowrap;border:1px solid var(--pk);color:var(--pk);background:var(--sf);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.cin{display:flex;gap:6px}.cin input{flex:1;min-width:0;border:1px solid var(--ln);border-radius:99px;padding:10px 14px;background:var(--sf)}
+.cin button{width:44px;height:44px;border:0;border-radius:50%;background:var(--pk);color:#fff;font-size:18px;cursor:pointer;flex:none}
+.cin button.rec{background:var(--rd);animation:pu .6s infinite alternate}@keyframes pu{to{transform:scale(1.12)}}
+.hbar{display:flex;align-items:center;gap:8px;font-size:12px;margin:4px 0}.hbar span:first-child{width:96px;flex:none}.hbar i{display:block;height:12px;border-radius:4px;background:var(--pk)}
+svg text{font-family:inherit}
+.v2{border-top:5px solid var(--bl)}
+.fut-b{display:inline-block;font-size:10px;font-weight:800;color:#fff;background:var(--bl);padding:2px 8px;border-radius:99px;letter-spacing:.3px}
+.lock{opacity:.6}
+details.card summary{cursor:pointer;font-weight:800;color:var(--pl);list-style:none}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary:after{content:" ▾";color:var(--mu)}
+details[open].card summary:after{content:" ▴"}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (min-width:600px){body{padding:16px 0}#app{border-radius:22px;overflow:hidden;box-shadow:0 8px 40px rgba(91,10,72,.18);min-height:calc(100vh - 32px)}.nav{bottom:16px;border-radius:0 0 22px 22px}.top{border-radius:22px 22px 0 0}}
+</style><style>.ppbox{background:var(--sd);border:1px dashed var(--ln);border-radius:12px;padding:8px 10px;margin:8px 0;font-size:12px}.ppbox b{color:var(--pk)}.ppkv{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px}.ppok{color:var(--gr);font-weight:700}.ppbad{color:var(--rd);font-weight:700}.ppwarn{color:var(--sa);font-weight:700}.ppchip{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.4px;border-radius:99px;padding:2px 8px;background:var(--pl);color:var(--onp)}.ppmono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;word-break:break-word}.pptable{width:100%;border-collapse:collapse;font-size:12px}.pptable th,.pptable td{text-align:left;padding:3px 4px;border-bottom:1px solid var(--ln)}</style></head><body><div id="app"><div class="top"><button class="ham" aria-label="Menu">☰</button><div class="brand">ProfitPilot <small>DEMO</small></div><span class="sp"></span><button id="ppBadge" class="lang" style="margin-right: 6px; border-color: rgba(27, 138, 90, 0.533); background: rgba(27, 138, 90, 0.18);" title="Connected to ProfitPilot 1.0 v1.0.0 · every number on screen is computed server-side">🟢 Engine server</button><button class="lang" id="langBtn"><u>EN</u> | हिं</button></div><div class="ctx" id="ctx"><button>👗 Printed Kurti ▾</button><button class="mc" style="background:#1B8A5A;border-color:#1B8A5A;color:#fff">🌱 GROWTH ▾</button><button class="fc">🛡️ F ₹309</button><button>Control: Co-Pilot</button></div><main id="view" class="in"><h1>Namaste Ramesh 👋</h1><div class="mu">What needs your attention today?</div>
+ <div class="demo">Simulated demo data. Illustrative numbers, not real Meesho data.</div>
+ <div class="g2">
+  <div class="kpi"><div class="l">Orders / day</div><div class="v">89</div><svg viewBox="0 0 80 24" width="80" height="24" aria-hidden="true"><polyline fill="none" stroke="#C2185B" stroke-width="2" points="0.0,22.0 13.3,17.6 26.7,14.2 40.0,12.0 53.3,7.6 66.7,5.3 80.0,2.0"></polyline></svg> <small class="up">▲ 6%</small></div>
+  <div class="kpi"><div class="l">Profit / kept order</div><div class="v">₹83</div><small class="mu">weighted, after returns &amp; RTO</small></div>
+  <div class="kpi"><div class="l">Profit / day</div><div class="v">₹6,002</div><small class="mu">72 kept orders</small></div>
+  <div class="kpi"><div class="l">Listings below floor</div><div class="v up">0</div><small class="up">🛡️ never without a Loss Warning</small></div></div>
+ <h2>Today's suggestions <span class="tag">🌱 GROWTH</span> <span class="mu">4 waiting</span></h2>
+ <div class="mu sm">Every card shows what, why, ₹ effect, confidence and undo. Change the goal mode at the top to see different suggestions.</div>
+ <div class="card rec "><div style="display:flex;gap:8px;align-items:center"><span style="font-size:22px">👗</span><b>Printed Kurti</b><span class="sp"></span><span class="stg" style="background:#1B8A5A">Growth</span></div>
+ <div class="pp" style="margin-top:4px"><span class="strike">₹369</span> → ₹384</div>
+ <div style="font-weight:700">Step up ₹369 -&gt; ₹384 (+4%)</div><div class="mu">Demand is growing and conversion held 2 weeks.</div>
+ <div class="meta"><div><b>₹ effect</b>₹75/kept order</div><div><b>Confidence</b><span class="conf" style="background:#1B8A5A">High</span></div></div>
+ <div class="btns"><button class="btn p">YES</button><button class="btn n">NO</button><button class="btn w ">WHY?</button></div></div><div class="card rec "><div style="display:flex;gap:8px;align-items:center"><span style="font-size:22px">🧴</span><b>Vitamin-C serum</b><span class="sp"></span><span class="stg" style="background:#1F8F8A">Peak / Maturity</span></div>
+ <div class="pp" style="margin-top:4px"><span class="strike">₹249</span> → ₹259</div>
+ <div style="font-weight:700">Raise ₹249 -&gt; ₹259: rivals moved up</div><div class="mu">The closest rivals moved to ₹279-₹299. You stay below them.</div>
+ <div class="meta"><div><b>₹ effect</b>₹93/kept order</div><div><b>Confidence</b><span class="conf" style="background:#1B8A5A">High</span></div></div>
+ <div class="btns"><button class="btn p">YES</button><button class="btn n">NO</button><button class="btn w ">WHY?</button></div></div><div class="card rec "><div style="display:flex;gap:8px;align-items:center"><span style="font-size:22px">👶</span><b>Baby romper</b><span class="sp"></span><span class="stg" style="background:#1B8A5A">Growth</span></div>
+ <div class="pp" style="margin-top:4px"><span class="strike">₹349</span> → ₹363</div>
+ <div style="font-weight:700">Step up ₹349 -&gt; ₹363 (+4%)</div><div class="mu">Demand is growing and conversion held 2 weeks.</div>
+ <div class="meta"><div><b>₹ effect</b>₹97/kept order</div><div><b>Confidence</b><span class="conf" style="background:#F58A0B">Medium</span></div></div>
+ <div class="btns"><button class="btn p">YES</button><button class="btn n">NO</button><button class="btn w ">WHY?</button></div></div><div class="card rec down"><div style="display:flex;gap:8px;align-items:center"><span style="font-size:22px">🏺</span><b>Ceramic vase</b><span class="sp"></span><span class="stg" style="background:#F58A0B">Decline</span></div>
+ <div class="pp" style="margin-top:4px"><span class="strike">₹499</span> → ₹469</div>
+ <div style="font-weight:700">Bundle first, then ₹499 -&gt; ₹469</div><div class="mu">73 days of stock. Price is not the main problem; free the cash safely.</div>
+ <div class="meta"><div><b>₹ effect</b>₹102/kept order</div><div><b>Confidence</b><span class="conf" style="background:#F58A0B">Medium</span></div></div>
+ <div class="btns"><button class="btn p">YES</button><button class="btn n">NO</button><button class="btn w ">WHY?</button></div></div>
+ <h2>Holding on purpose <span class="tag">1</span></h2><div class="card rec hold"><div style="display:flex;gap:8px;align-items:center"><span style="font-size:22px">🍱</span><b>Steel lunch box</b><span class="sp"></span><span class="stg" style="background:#1F8F8A">Peak / Maturity</span></div>
+ <div class="pp" style="margin-top:4px">₹449</div>
+ <div style="font-weight:700">Hold ₹449: no trigger crossed</div><div class="mu">Stock is low (8 days): reorder before any price move.</div>
+ 
+ <div class="btns"><button class="btn s">OK, hold</button><button class="btn w ">Why?</button></div></div>
+ <h2>Product health</h2>
+ <div class="mu sm" style="margin-bottom:6px"><span class="dot" style="--c:var(--gr)">Healthy</span> price ≥ F + ₹50, returns &lt; 15%, stock 20–60 days · <span class="dot" style="--c:var(--sa)">Watch</span> · <span class="dot" style="--c:var(--rd)">Needs attention</span> near floor, returns &gt; 20%, or stock &lt; 10 / &gt; 60 days</div>
+ <div class="card flat" style="padding:10px 12px;margin:8px 0;cursor:pointer"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:22px">👗</span><b style="flex:1">Printed Kurti</b><span class="dot" style="--c:var(--gr)">Healthy</span></div>
+  <div class="sm" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px"><span><b>₹369</b> · F ₹309 · <b class="up">+₹60</b></span><span>23.0/day</span><span>ret 12%</span><span>35 days stock</span><span class="stg" style="background:#1B8A5A">Growth</span></div></div><div class="card flat" style="padding:10px 12px;margin:8px 0;cursor:pointer"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:22px">🍱</span><b style="flex:1">Steel lunch box</b><span class="dot" style="--c:var(--rd)">Needs attention</span></div>
+  <div class="sm" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px"><span><b>₹449</b> · F ₹346 · <b class="up">+₹103</b></span><span>12.0/day</span><span>ret 5%</span><span>8 days stock</span><span class="stg" style="background:#1F8F8A">Peak / Maturity</span></div></div><div class="card flat" style="padding:10px 12px;margin:8px 0;cursor:pointer"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:22px">🧴</span><b style="flex:1">Vitamin-C serum</b><span class="dot" style="--c:var(--gr)">Healthy</span></div>
+  <div class="sm" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px"><span><b>₹249</b> · F ₹166 · <b class="up">+₹83</b></span><span>30.0/day</span><span>ret 4%</span><span>40 days stock</span><span class="stg" style="background:#1F8F8A">Peak / Maturity</span></div></div><div class="card flat" style="padding:10px 12px;margin:8px 0;cursor:pointer"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:22px">👶</span><b style="flex:1">Baby romper</b><span class="dot" style="--c:var(--gr)">Healthy</span></div>
+  <div class="sm" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px"><span><b>₹349</b> · F ₹266 · <b class="up">+₹83</b></span><span>18.0/day</span><span>ret 10%</span><span>32 days stock</span><span class="stg" style="background:#1B8A5A">Growth</span></div></div><div class="card flat" style="padding:10px 12px;margin:8px 0;cursor:pointer"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:22px">🏺</span><b style="flex:1">Ceramic vase</b><span class="dot" style="--c:var(--rd)">Needs attention</span></div>
+  <div class="sm" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px"><span><b>₹499</b> · F ₹367 · <b class="up">+₹132</b></span><span>5.5/day</span><span>ret 9%</span><span>73 days stock</span><span class="stg" style="background:#F58A0B">Decline</span></div></div>
+ <h2>Who decides the price</h2>
+ <div class="g3"><div class="kpi c" style="cursor:pointer;"><div class="v">0</div><b class="sm">✋ Manual</b></div><div class="kpi c" style="cursor:pointer;border:2px solid var(--sa)"><div class="v">5</div><b class="sm">🧑‍✈️ Co-Pilot</b></div><div class="kpi c" style="cursor:pointer;"><div class="v">0</div><b class="sm">🔒 Autopilot</b></div></div>
+ <div class="mu sm" style="margin-top:6px">Autopilot is earned: wins 0/4 <div class="mt"><i style="width:0%;background:var(--sa)"></i></div></div>
+ <p class="mu">🛡️ Floor protection is ON in every mode. ProfitPilot never publishes below F silently.</p></main></div><nav class="nav" id="nav"><button class="on"><span>🏠</span>Home</button><button class=""><span>🏷️</span>First price</button><button class=""><span>🎚️</span>Simulator</button><button class=""><span>📈</span>Lifecycle</button><button class=""><span>☰</span>More</button></nav><button class="fab" id="fab" style="display: block;" title="Ask ProfitPilot" aria-label="Ask ProfitPilot">🧭</button><div id="ov"></div>
+
+
+
+</body></html>
